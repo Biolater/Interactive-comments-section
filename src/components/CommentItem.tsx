@@ -8,7 +8,9 @@ const CommentItem: React.FC<{
   comment: Comment;
   isOwner?: boolean;
   currentUsername?: string;
-}> = ({ comment, isOwner, currentUsername }) => {
+  onUpVote: (id: number) => void;
+  onDownVote: (id: number) => void;
+}> = ({ comment, isOwner, currentUsername, onUpVote, onDownVote }) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="comment-item bg-neutral-white p-4 rounded flex flex-col gap-3">
@@ -33,13 +35,19 @@ const CommentItem: React.FC<{
         <footer>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 p-2 rounded-lg bg-neutral-veryLightGray">
-              <button className="cursor-pointer transition-colors p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue">
+              <button
+                onClick={() => onUpVote(comment.id)}
+                className="cursor-pointer transition-colors p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue"
+              >
                 <PlusIcon />
               </button>
               <span className="text-primary-moderateBlue font-medium">
                 {comment.score}
               </span>
-              <button className="cursor-pointer transition-colors p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue">
+              <button
+                onClick={() => onDownVote(comment.id)}
+                className="cursor-pointer transition-colors p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue"
+              >
                 <MinusIcon />
               </button>
             </div>
@@ -51,18 +59,20 @@ const CommentItem: React.FC<{
         </footer>
       </div>
       {/* Replies */}
-      <div className="flex flex-col ps-4 border-s border-neutral-lightGrayishBlue">
-        {comment.replies &&
-          comment?.replies?.length > 0 &&
-          comment.replies.map((reply) => (
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="flex flex-col gap-4 ps-4 border-s border-neutral-lightGrayishBlue">
+          {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
               isOwner={reply.user.username === currentUsername}
               currentUsername={currentUsername}
+              onUpVote={() => onUpVote(reply.id)}
+              onDownVote={() => onDownVote(reply.id)}
             />
           ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
