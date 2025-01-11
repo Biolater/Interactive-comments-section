@@ -1,5 +1,5 @@
 import React from "react";
-import { type Comment } from "./Comments";
+import { votedComment, type Comment } from "./Comments";
 import PlusIcon from "./icons/PlusIcon";
 import MinusIcon from "./icons/MinusIcon";
 import ReplyIcon from "./icons/ReplyIcon";
@@ -8,9 +8,21 @@ const CommentItem: React.FC<{
   comment: Comment;
   isOwner?: boolean;
   currentUsername?: string;
+  voteState: "upvote" | "downvote" | "none" | undefined;
+  votedComments: votedComment[];
   onUpVote: (id: number) => void;
   onDownVote: (id: number) => void;
-}> = ({ comment, isOwner, currentUsername, onUpVote, onDownVote }) => {
+  replyingTo?: string | undefined;
+}> = ({
+  comment,
+  isOwner,
+  currentUsername,
+  onUpVote,
+  onDownVote,
+  voteState = "none",
+  votedComments,
+  replyingTo,
+}) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="comment-item bg-neutral-white p-4 rounded flex flex-col gap-3">
@@ -30,14 +42,28 @@ const CommentItem: React.FC<{
           <span className="text-neutral-grayishBlue">{comment.createdAt}</span>
         </header>
         {/* Comment Body */}
-        <p className="text-neutral-grayishBlue">{comment.content}</p>
+        <p className="text-neutral-grayishBlue">
+          {replyingTo ? (
+            <>
+              <span className="text-primary-moderateBlue font-semibold">
+                @{replyingTo}
+              </span>
+              {" "}
+              {comment.content}
+            </>
+          ) : (
+            comment.content
+          )}
+        </p>
         {/* Comment Footer */}
         <footer>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 p-2 rounded-lg bg-neutral-veryLightGray">
               <button
                 onClick={() => onUpVote(comment.id)}
-                className="cursor-pointer transition-colors p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue"
+                className={`cursor-pointer transition-colors ${
+                  voteState === "upvote" && "text-primary-moderateBlue"
+                } p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue`}
               >
                 <PlusIcon />
               </button>
@@ -46,12 +72,17 @@ const CommentItem: React.FC<{
               </span>
               <button
                 onClick={() => onDownVote(comment.id)}
-                className="cursor-pointer transition-colors p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue"
+                className={`cursor-pointer transition-colors ${
+                  voteState === "downvote" && "text-primary-moderateBlue"
+                } p-1 text-primary-lightGrayishBlue hover:text-primary-moderateBlue`}
               >
                 <MinusIcon />
               </button>
             </div>
-            <div className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue">
+            <div
+              onClick={() => alert("reply")}
+              className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue"
+            >
               <ReplyIcon />
               <span className="font-medium">Reply</span>
             </div>
@@ -67,6 +98,13 @@ const CommentItem: React.FC<{
               comment={reply}
               isOwner={reply.user.username === currentUsername}
               currentUsername={currentUsername}
+              voteState={
+                votedComments.find(
+                  (votedComment) => votedComment.id === comment.id
+                )?.type
+              }
+              votedComments={votedComments}
+              replyingTo={reply.replyingTo}
               onUpVote={() => onUpVote(reply.id)}
               onDownVote={() => onDownVote(reply.id)}
             />
