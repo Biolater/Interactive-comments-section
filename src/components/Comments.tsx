@@ -125,12 +125,21 @@ const Comments = () => {
           currentUsername={commentsData.currentUser.username}
         />
       ))}
-      <div className="add-comment">
+      {/* Add Comment */}
+      <div className="add-comment p-4 bg-white rounded-md flex flex-wrap justify-between gap-4 ">
         {/* Profile Photo */}
         <img
+          className="w-10 h-10"
           src={commentsData.currentUser.image.webp}
           alt={commentsData.currentUser.username}
         />
+        {/* Comment Input */}
+        <textarea
+          placeholder="Add a comment..."
+          className="w-full resize-none -order-1 flex-grow h-28 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
+        {/* Send Button */}
+        <button className="bg-primary-moderateBlue text-white px-4 py-2 rounded-md">SEND</button>
       </div>
     </div>
   );
