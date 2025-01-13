@@ -1,8 +1,9 @@
-import React from "react";
 import { votedComment, type Comment } from "./Comments";
 import PlusIcon from "./icons/PlusIcon";
 import MinusIcon from "./icons/MinusIcon";
 import ReplyIcon from "./icons/ReplyIcon";
+import DeleteIcon from "./icons/DeleteIcon";
+import EditIcon from "./icons/EditIcon";
 
 const CommentItem: React.FC<{
   comment: Comment;
@@ -13,6 +14,7 @@ const CommentItem: React.FC<{
   onUpVote: (id: number) => void;
   onDownVote: (id: number) => void;
   replyingTo?: string | undefined;
+  onDelete: (id: number) => void;
 }> = ({
   comment,
   isOwner,
@@ -22,6 +24,7 @@ const CommentItem: React.FC<{
   voteState = "none",
   votedComments,
   replyingTo,
+  onDelete,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -47,8 +50,7 @@ const CommentItem: React.FC<{
             <>
               <span className="text-primary-moderateBlue font-semibold">
                 @{replyingTo}
-              </span>
-              {" "}
+              </span>{" "}
               {comment.content}
             </>
           ) : (
@@ -79,13 +81,34 @@ const CommentItem: React.FC<{
                 <MinusIcon />
               </button>
             </div>
-            <div
-              onClick={() => alert("reply")}
-              className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue"
-            >
-              <ReplyIcon />
-              <span className="font-medium">Reply</span>
-            </div>
+            {!isOwner ? (
+              // Reply
+              <div
+                onClick={() => alert("reply")}
+                className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue"
+              >
+                <ReplyIcon />
+                <span className="font-medium">Reply</span>
+              </div>
+            ) : (
+              // Delete/Edit
+              <div className="flex items-center gap-4">
+                <div
+                  onClick={() => onDelete(comment.id)}
+                  className="flex cursor-pointer transition-colors text-primary-softRed items-center gap-2 hover:text-primary-lightGrayishBlue"
+                >
+                  <DeleteIcon />
+                  <span className="font-medium">Delete</span>
+                </div>
+                <div
+                  onClick={() => alert("reply")}
+                  className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue"
+                >
+                  <EditIcon />
+                  <span className="font-medium">Edit</span>
+                </div>
+              </div>
+            )}
           </div>
         </footer>
       </div>
@@ -100,11 +123,12 @@ const CommentItem: React.FC<{
               currentUsername={currentUsername}
               voteState={
                 votedComments.find(
-                  (votedComment) => votedComment.id === comment.id
+                  (votedComment) => votedComment.id === reply.id
                 )?.type
               }
               votedComments={votedComments}
               replyingTo={reply.replyingTo}
+              onDelete={() => onDelete(reply.id)}
               onUpVote={() => onUpVote(reply.id)}
               onDownVote={() => onDownVote(reply.id)}
             />

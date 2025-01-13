@@ -24,7 +24,7 @@ const Comments = () => {
   const [votedComments, setVotedComments] = useState<votedComment[]>(
     JSON.parse(localStorage.getItem("votedComments") || "[]")
   );
-  const [comments, setComments] = useState(commentsData.comments);
+  const [comments, setComments] = useState<Comment[]>(commentsData.comments);
 
   useEffect(() => {
     const commentsFromLocalStorage = localStorage.getItem("comments");
@@ -105,6 +105,57 @@ const Comments = () => {
     updateVote(id, increment);
   };
 
+  const handleAddComment = (comment: Comment) => {
+    setComments((prevComments) => [...prevComments, comment]);
+    localStorage.setItem("comments", JSON.stringify([...comments, comment]));
+  };
+
+  const handleAddCommentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const newComment = {
+      id: Date.now(),
+      content: e.currentTarget.comment.value,
+      createdAt: "1 minute ago",
+      score: 0,
+      user: commentsData.currentUser,
+    };
+    handleAddComment(newComment);
+    e.currentTarget.reset();
+  };
+
+  const handleDeleteComment = (id: number) => {
+    setComments((prevComments) => {
+      // Check if the comment to delete is a top-level comment
+      const isTopLevelComment = prevComments.some(
+        (comment) => comment.id === id
+      );
+      let updatedComments;
+      if (isTopLevelComment) {
+        updatedComments = prevComments.filter((comment) => comment.id !== id);
+      } else {
+        // If not a top-level comment, find and delete it from the replies
+        updatedComments = prevComments.map((comment) => {
+          if (comment.replies) {
+            return {
+              ...comment,
+              replies: comment.replies.filter((reply) => reply.id !== id),
+            };
+          }
+          return comment;
+        });
+      }
+      localStorage.setItem("comments", JSON.stringify(updatedComments));
+      return updatedComments;
+    });
+
+    localStorage.setItem(
+      "votedComments",
+      JSON.stringify(
+        votedComments.filter((votedComment) => votedComment.id !== id)
+      )
+    );
+  };
+
   const handleUpVote = (id: number) => handleVote(id, "upvote");
   const handleDownVote = (id: number) => handleVote(id, "downvote");
 
@@ -112,6 +163,7 @@ const Comments = () => {
     <div className="flex flex-col gap-4">
       {comments.map((comment) => (
         <CommentItem
+          onDelete={handleDeleteComment}
           key={comment.id}
           onUpVote={handleUpVote}
           onDownVote={handleDownVote}
@@ -126,20 +178,29 @@ const Comments = () => {
         />
       ))}
       {/* Add Comment */}
-      <div className="add-comment p-4 bg-white rounded-md flex flex-wrap justify-between gap-4 ">
-        {/* Profile Photo */}
-        <img
-          className="w-10 h-10"
-          src={commentsData.currentUser.image.webp}
-          alt={commentsData.currentUser.username}
-        />
-        {/* Comment Input */}
-        <textarea
-          placeholder="Add a comment..."
-          className="w-full resize-none -order-1 flex-grow h-28 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        ></textarea>
-        {/* Send Button */}
-        <button className="bg-primary-moderateBlue text-white px-4 py-2 rounded-md">SEND</button>
+      <div className="add-comment p-4 bg-white rounded-md">
+        {/* Add a  comment form */}
+        <form
+          onSubmit={handleAddCommentSubmit}
+          className="flex flex-wrap justify-between gap-4"
+        >
+          {/* Profile Photo */}
+          <img
+            className="w-9 h-9"
+            src={commentsData.currentUser.image.webp}
+            alt={commentsData.currentUser.username}
+          />
+          {/* Comment Input */}
+          <textarea
+            name="comment"
+            placeholder="Add a comment..."
+            className="w-full resize-none -order-1 flex-grow h-28 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          ></textarea>
+          {/* Send Button */}
+          <button className="bg-primary-moderateBlue text-white px-6 py-2 rounded-md">
+            SEND
+          </button>
+        </form>
       </div>
     </div>
   );
