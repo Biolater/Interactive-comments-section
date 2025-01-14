@@ -4,6 +4,17 @@ import MinusIcon from "./icons/MinusIcon";
 import ReplyIcon from "./icons/ReplyIcon";
 import DeleteIcon from "./icons/DeleteIcon";
 import EditIcon from "./icons/EditIcon";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const CommentItem: React.FC<{
   comment: Comment;
@@ -93,12 +104,37 @@ const CommentItem: React.FC<{
             ) : (
               // Delete/Edit
               <div className="flex items-center gap-4">
-                <div
-                  onClick={() => onDelete(comment.id)}
-                  className="flex cursor-pointer transition-colors text-primary-softRed items-center gap-2 hover:text-primary-lightGrayishBlue"
-                >
-                  <DeleteIcon />
-                  <span className="font-medium">Delete</span>
+                <div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div className="flex cursor-pointer transition-colors text-primary-softRed items-center gap-2 hover:text-primary-lightGrayishBlue">
+                        <DeleteIcon />
+                        <span className="font-medium">Delete</span>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-md sm:p-6">
+                      <AlertDialogHeader className="text-start">
+                        <AlertDialogTitle className="text-neutral-darkBlue">
+                          Delete Comment
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="sm:max-w-72">
+                          Are you sure you want to delete this comment? This
+                          will remove the comment and can't be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="gap-2.5 sm:gap-3 text-white">
+                        <AlertDialogCancel className="mt-0 h-11 flex-grow hover:text-white bg-neutral-grayishBlue hover:bg-neutral-grayishBlue/70 uppercase">
+                          no, cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => onDelete(comment.id)}
+                          className="flex-grow h-11 bg-primary-softRed hover:bg-primary-softRed/70 uppercase"
+                        >
+                          yes, delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
                 <div
                   onClick={() => alert("reply")}
