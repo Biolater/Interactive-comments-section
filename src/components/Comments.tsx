@@ -25,6 +25,8 @@ const Comments = () => {
     JSON.parse(localStorage.getItem("votedComments") || "[]")
   );
   const [comments, setComments] = useState<Comment[]>(commentsData.comments);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+
 
   useEffect(() => {
     const commentsFromLocalStorage = localStorage.getItem("comments");
@@ -112,9 +114,11 @@ const Comments = () => {
 
   const handleAddCommentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const commentValue = e.currentTarget.comment.value;
+    if(!commentValue.trim()) return;
     const newComment = {
       id: Date.now(),
-      content: e.currentTarget.comment.value,
+      content: commentValue,
       createdAt: "1 minute ago",
       score: 0,
       user: commentsData.currentUser,
@@ -156,6 +160,21 @@ const Comments = () => {
     );
   };
 
+  const handleUpdate = (id: number, content: string) => {
+    const updatedComments = comments.map((comment) => {
+      if (comment.id === id) {
+        return { ...comment, content };
+      }
+      return comment
+    })
+
+    setComments(updatedComments);
+    setEditingCommentId(null);
+    localStorage.setItem("comments", JSON.stringify(updatedComments));
+  }
+
+  const handleOnEdit = (id: number) => setEditingCommentId(id);
+
   const handleUpVote = (id: number) => handleVote(id, "upvote");
   const handleDownVote = (id: number) => handleVote(id, "downvote");
 
@@ -167,11 +186,15 @@ const Comments = () => {
           key={comment.id}
           onUpVote={handleUpVote}
           onDownVote={handleDownVote}
+          onUpdate={handleUpdate}
           voteState={
             votedComments.find((votedComment) => votedComment.id === comment.id)
               ?.type
           }
+          onEdit={handleOnEdit}
+          isBeingEdited={editingCommentId === comment.id}
           votedComments={votedComments}
+          editingCommentId={editingCommentId}
           comment={comment}
           isOwner={comment.user.username === commentsData.currentUser.username}
           currentUsername={commentsData.currentUser.username}

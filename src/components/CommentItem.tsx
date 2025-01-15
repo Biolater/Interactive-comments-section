@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useEffect, useState } from "react";
 
 const CommentItem: React.FC<{
   comment: Comment;
@@ -25,7 +26,11 @@ const CommentItem: React.FC<{
   onUpVote: (id: number) => void;
   onDownVote: (id: number) => void;
   replyingTo?: string | undefined;
+  isBeingEdited?: boolean;
   onDelete: (id: number) => void;
+  onEdit: (id: number) => void;
+  editingCommentId?: number | null;
+  onUpdate: (id: number, content: string) => void;
 }> = ({
   comment,
   isOwner,
@@ -36,7 +41,15 @@ const CommentItem: React.FC<{
   votedComments,
   replyingTo,
   onDelete,
+  isBeingEdited,
+  editingCommentId,
+  onEdit,
+  onUpdate,
 }) => {
+  const [commentValue, setCommentValue] = useState(comment.content);
+  useEffect(() => {
+    if (isBeingEdited) setCommentValue(comment.content);
+  }, [isBeingEdited]);
   return (
     <div className="flex flex-col gap-4">
       <div className="comment-item bg-neutral-white p-4 rounded flex flex-col gap-3">
@@ -56,18 +69,26 @@ const CommentItem: React.FC<{
           <span className="text-neutral-grayishBlue">{comment.createdAt}</span>
         </header>
         {/* Comment Body */}
-        <p className="text-neutral-grayishBlue">
-          {replyingTo ? (
-            <>
-              <span className="text-primary-moderateBlue font-semibold">
-                @{replyingTo}
-              </span>{" "}
-              {comment.content}
-            </>
-          ) : (
-            comment.content
-          )}
-        </p>
+        {isBeingEdited ? (
+          <textarea
+            value={commentValue}
+            onChange={(e) => setCommentValue(e.target.value)}
+            className="comment-body bg-neutral-veryLightGray p-3 pb-6 rounded-md border border-primary-moderateBlue resize-none outline-none"
+          />
+        ) : (
+          <p className="text-neutral-grayishBlue">
+            {replyingTo ? (
+              <>
+                <span className="text-primary-moderateBlue font-semibold">
+                  @{replyingTo}
+                </span>{" "}
+                {comment.content}
+              </>
+            ) : (
+              comment.content
+            )}
+          </p>
+        )}
         {/* Comment Footer */}
         <footer>
           <div className="flex items-center justify-between">
@@ -101,8 +122,18 @@ const CommentItem: React.FC<{
                 <ReplyIcon />
                 <span className="font-medium">Reply</span>
               </div>
+            ) : // Delete/Edit
+            isBeingEdited ? (
+              <button
+                onClick={() => {
+                  console.log("updating comment", commentValue, comment.id);
+                  onUpdate(comment.id, commentValue);
+                }}
+                className="bg-primary-moderateBlue text-white px-6 py-2 rounded-md"
+              >
+                UPDATE
+              </button>
             ) : (
-              // Delete/Edit
               <div className="flex items-center gap-4">
                 <div>
                   <AlertDialog>
@@ -123,12 +154,12 @@ const CommentItem: React.FC<{
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter className="gap-2.5 sm:gap-3 text-white">
-                        <AlertDialogCancel className="mt-0 h-11 flex-grow hover:text-white bg-neutral-grayishBlue hover:bg-neutral-grayishBlue/70 uppercase">
+                        <AlertDialogCancel className="!mt-0 h-11 flex-grow hover:text-white bg-neutral-grayishBlue hover:bg-neutral-grayishBlue/70 uppercase">
                           no, cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => onDelete(comment.id)}
-                          className="flex-grow h-11 bg-primary-softRed hover:bg-primary-softRed/70 uppercase"
+                          className="flex-grow h-11 bg-primary-softRed hover:bg-primary-softRed/75 uppercase"
                         >
                           yes, delete
                         </AlertDialogAction>
@@ -137,7 +168,7 @@ const CommentItem: React.FC<{
                   </AlertDialog>
                 </div>
                 <div
-                  onClick={() => alert("reply")}
+                  onClick={() => onEdit(comment.id)}
                   className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue"
                 >
                   <EditIcon />
@@ -162,11 +193,14 @@ const CommentItem: React.FC<{
                   (votedComment) => votedComment.id === reply.id
                 )?.type
               }
+              onEdit={() => onEdit(reply.id)}
+              isBeingEdited={reply.id === editingCommentId}
               votedComments={votedComments}
               replyingTo={reply.replyingTo}
               onDelete={() => onDelete(reply.id)}
               onUpVote={() => onUpVote(reply.id)}
               onDownVote={() => onDownVote(reply.id)}
+              onUpdate={() => onUpdate(reply.id, reply.content)}
             />
           ))}
         </div>
