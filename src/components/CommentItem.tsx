@@ -46,10 +46,12 @@ const CommentItem: React.FC<{
   onEdit,
   onUpdate,
 }) => {
-  const [commentValue, setCommentValue] = useState(comment.content);
+  const [localCommentValue, setLocalCommentValue] = useState(comment.content);
+
   useEffect(() => {
-    if (isBeingEdited) setCommentValue(comment.content);
-  }, [isBeingEdited]);
+    if (isBeingEdited) setLocalCommentValue(comment.content);
+  }, [isBeingEdited, comment.content]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="comment-item bg-neutral-white p-4 rounded flex flex-col gap-3">
@@ -71,8 +73,8 @@ const CommentItem: React.FC<{
         {/* Comment Body */}
         {isBeingEdited ? (
           <textarea
-            value={commentValue}
-            onChange={(e) => setCommentValue(e.target.value)}
+            value={localCommentValue}
+            onChange={(e) => setLocalCommentValue(e.target.value)}
             className="comment-body bg-neutral-veryLightGray p-3 pb-6 rounded-md border border-primary-moderateBlue resize-none outline-none"
           />
         ) : (
@@ -122,18 +124,18 @@ const CommentItem: React.FC<{
                 <ReplyIcon />
                 <span className="font-medium">Reply</span>
               </div>
-            ) : // Delete/Edit
-            isBeingEdited ? (
+            ) : isBeingEdited ? (
+              // Update Button
               <button
                 onClick={() => {
-                  console.log("updating comment", commentValue, comment.id);
-                  onUpdate(comment.id, commentValue);
+                  onUpdate(comment.id, localCommentValue);
                 }}
                 className="bg-primary-moderateBlue text-white px-6 py-2 rounded-md"
               >
                 UPDATE
               </button>
             ) : (
+              // Edit/Delete
               <div className="flex items-center gap-4">
                 <div>
                   <AlertDialog>
@@ -200,7 +202,7 @@ const CommentItem: React.FC<{
               onDelete={() => onDelete(reply.id)}
               onUpVote={() => onUpVote(reply.id)}
               onDownVote={() => onDownVote(reply.id)}
-              onUpdate={() => onUpdate(reply.id, reply.content)}
+              onUpdate={onUpdate}
             />
           ))}
         </div>

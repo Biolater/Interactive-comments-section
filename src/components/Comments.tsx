@@ -165,8 +165,16 @@ const Comments = () => {
       if (comment.id === id) {
         return { ...comment, content };
       }
-      return comment
-    })
+      if (comment.replies) {
+        comment.replies = comment.replies.map((reply) => {
+          if (reply.id === id) {
+            return { ...reply, content };
+          }
+          return reply;
+        });
+      }
+      return comment;
+    });
 
     setComments(updatedComments);
     setEditingCommentId(null);
