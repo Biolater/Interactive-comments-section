@@ -26,7 +26,9 @@ const Comments = () => {
   );
   const [comments, setComments] = useState<Comment[]>(commentsData.comments);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-
+  const [replyingCommentId, setReplyingCommentId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const commentsFromLocalStorage = localStorage.getItem("comments");
@@ -115,7 +117,7 @@ const Comments = () => {
   const handleAddCommentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const commentValue = e.currentTarget.comment.value;
-    if(!commentValue.trim()) return;
+    if (!commentValue.trim()) return;
     const newComment = {
       id: Date.now(),
       content: commentValue,
@@ -179,7 +181,40 @@ const Comments = () => {
     setComments(updatedComments);
     setEditingCommentId(null);
     localStorage.setItem("comments", JSON.stringify(updatedComments));
-  }
+  };
+
+  const handleReplyClick = (id: number) => {
+    setReplyingCommentId((prevId) => (prevId === id ? null : id));
+  };
+
+  const handleReply = (content: string) => {
+    const newReply = {
+      id: Date.now(),
+      content,
+      createdAt: "1 minute ago",
+      score: 0,
+      user: commentsData.currentUser,
+    };
+    const updatedComments = comments.map((comment) => {
+      if (comment.id === replyingCommentId) {
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), newReply],
+        };
+      }
+      if (comment.replies) {
+        comment.replies.map((reply) => {
+          if (reply.id === replyingCommentId)
+            return { ...reply, replies: [...(reply.replies || []), newReply] };
+          return reply;
+        });
+      }
+      return comment;
+    });
+    setComments(updatedComments);
+    localStorage.setItem("comments", JSON.stringify(updatedComments))
+    setReplyingCommentId(null)
+  };
 
   const handleOnEdit = (id: number) => setEditingCommentId(id);
 
@@ -206,6 +241,12 @@ const Comments = () => {
           comment={comment}
           isOwner={comment.user.username === commentsData.currentUser.username}
           currentUsername={commentsData.currentUser.username}
+          isBeingReplied={comment.id === replyingCommentId}
+          onReplyClick={handleReplyClick}
+          currentUserImage={commentsData.currentUser.image.webp}
+          replyingTo={comment.replyingTo}
+          onReply={handleReply}
+          replyingCommentId={replyingCommentId || undefined}
         />
       ))}
       {/* Add Comment */}

@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
+import ReplyForm from "./ReplyForm";
 
 const CommentItem: React.FC<{
   comment: Comment;
@@ -31,6 +32,11 @@ const CommentItem: React.FC<{
   onEdit: (id: number) => void;
   editingCommentId?: number | null;
   onUpdate: (id: number, content: string) => void;
+  isBeingReplied?: boolean;
+  onReplyClick: (id: number) => void;
+  currentUserImage?: string;
+  replyingCommentId?: number;
+  onReply: (content: string) => void;
 }> = ({
   comment,
   isOwner,
@@ -45,6 +51,11 @@ const CommentItem: React.FC<{
   editingCommentId,
   onEdit,
   onUpdate,
+  isBeingReplied,
+  onReplyClick,
+  currentUserImage,
+  replyingCommentId,
+  onReply,
 }) => {
   const [localCommentValue, setLocalCommentValue] = useState(comment.content);
 
@@ -118,7 +129,7 @@ const CommentItem: React.FC<{
             {!isOwner ? (
               // Reply
               <div
-                onClick={() => alert("reply")}
+                onClick={() => onReplyClick(comment.id)}
                 className="flex cursor-pointer transition-colors text-primary-moderateBlue items-center gap-2 hover:text-primary-lightGrayishBlue"
               >
                 <ReplyIcon />
@@ -181,6 +192,14 @@ const CommentItem: React.FC<{
           </div>
         </footer>
       </div>
+      {/* Reply Form */}
+      {isBeingReplied && (
+        <ReplyForm
+          img={currentUserImage || ""}
+          username={currentUsername || ""}
+          onReply={onReply}
+        />
+      )}
       {/* Replies */}
       {comment.replies && comment.replies.length > 0 && (
         <div className="flex flex-col gap-4 ps-4 border-s border-neutral-lightGrayishBlue">
@@ -202,7 +221,13 @@ const CommentItem: React.FC<{
               onDelete={() => onDelete(reply.id)}
               onUpVote={() => onUpVote(reply.id)}
               onDownVote={() => onDownVote(reply.id)}
+              isBeingReplied={reply.id === replyingCommentId}
+              onReplyClick={onReplyClick}
               onUpdate={onUpdate}
+              currentUserImage={currentUserImage}
+              editingCommentId={editingCommentId}
+              onReply={onReply}
+              replyingCommentId={replyingCommentId}
             />
           ))}
         </div>
