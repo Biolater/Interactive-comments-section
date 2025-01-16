@@ -51,21 +51,19 @@ const Comments = () => {
   }, [votedComments]);
 
   const updateVote = (id: number, increment: number) => {
-    const updatedComments = comments.map((comment) => {
-      if (comment.id === id) {
-        return { ...comment, score: comment.score + increment };
-      }
-
-      if (comment.replies) {
-        comment.replies = comment.replies.map((reply) => {
-          if (reply.id === id) {
-            return { ...reply, score: reply.score + increment };
-          }
-          return reply;
-        });
-      }
-      return comment;
-    });
+    console.log("updatingVoteFor", id, increment);
+    const updateComments = (comments: Comment[]): Comment[] => {
+      return comments.map(comment => {
+        if(comment.id === id){
+          return { ...comment, score: comment.score + increment }
+        }
+        if(comment.replies){
+          comment.replies = updateComments(comment.replies)
+        }
+        return comment
+      })
+    }
+    const updatedComments = updateComments(comments);
 
     setComments(updatedComments);
     localStorage.setItem("comments", JSON.stringify(updatedComments));
@@ -131,7 +129,6 @@ const Comments = () => {
   };
 
   const handleDeleteComment = (id: number) => {
-    console.log("deleteRequestFor", id);
     setComments((prevComments) => {
       // Check if the comment to delete is a top-level comment
       const handleDeleteCommentRecursive = (comments: Comment[]): Comment[] => {
@@ -159,21 +156,19 @@ const Comments = () => {
   };
 
   const handleUpdate = (id: number, content: string) => {
-    const updatedComments = comments.map((comment) => {
-      if (comment.id === id) {
-        return { ...comment, content };
-      }
-      if (comment.replies) {
-        comment.replies = comment.replies.map((reply) => {
-          if (reply.id === id) {
-            return { ...reply, content };
-          }
-          return reply;
-        });
-      }
-      return comment;
-    });
-
+    const updateComments = (comments: Comment[]): Comment[] => {
+      return comments.map((comment) => {
+        if (comment.id === id) {
+          return { ...comment, content };
+        }
+        if (comment.replies) {
+          comment.replies = updateComments(comment.replies);
+        }
+        return comment;
+      });
+  
+    }
+    const updatedComments = updateComments(comments);
     setComments(updatedComments);
     setEditingCommentId(null);
     localStorage.setItem("comments", JSON.stringify(updatedComments));

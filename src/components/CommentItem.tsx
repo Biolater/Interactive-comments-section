@@ -219,8 +219,8 @@ const CommentItem: React.FC<{
               votedComments={votedComments}
               replyingTo={reply.replyingTo}
               onDelete={onDelete}
-              onUpVote={() => onUpVote(reply.id)}
-              onDownVote={() => onDownVote(reply.id)}
+              onUpVote={onUpVote}
+              onDownVote={onDownVote}
               isBeingReplied={reply.id === replyingCommentId}
               onReplyClick={onReplyClick}
               onUpdate={onUpdate}
