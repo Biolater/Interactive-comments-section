@@ -55,6 +55,7 @@ const Comments = () => {
       if (comment.id === id) {
         return { ...comment, score: comment.score + increment };
       }
+
       if (comment.replies) {
         comment.replies = comment.replies.map((reply) => {
           if (reply.id === id) {
@@ -130,26 +131,21 @@ const Comments = () => {
   };
 
   const handleDeleteComment = (id: number) => {
+    console.log("deleteRequestFor", id);
     setComments((prevComments) => {
       // Check if the comment to delete is a top-level comment
-      const isTopLevelComment = prevComments.some(
-        (comment) => comment.id === id
-      );
-      let updatedComments;
-      if (isTopLevelComment) {
-        updatedComments = prevComments.filter((comment) => comment.id !== id);
-      } else {
-        // If not a top-level comment, find and delete it from the replies
-        updatedComments = prevComments.map((comment) => {
-          if (comment.replies) {
-            return {
-              ...comment,
-              replies: comment.replies.filter((reply) => reply.id !== id),
-            };
+      const handleDeleteCommentRecursive = (comments: Comment[]): Comment[] => {
+        return comments.filter((comment) => {
+          if(comment.id === id) {
+            return false;
           }
-          return comment;
-        });
+          if (comment.replies) {
+            comment.replies = handleDeleteCommentRecursive(comment.replies);
+          }
+          return true;
+        })
       }
+      const updatedComments = handleDeleteCommentRecursive(prevComments);
       localStorage.setItem("comments", JSON.stringify(updatedComments));
       return updatedComments;
     });
@@ -194,26 +190,37 @@ const Comments = () => {
       createdAt: "1 minute ago",
       score: 0,
       user: commentsData.currentUser,
+      replyingTo: replyingCommentId
+        ? comments.find((c) => c.id === replyingCommentId)?.user.username
+        : undefined,
     };
-    const updatedComments = comments.map((comment) => {
-      if (comment.id === replyingCommentId) {
-        return {
-          ...comment,
-          replies: [...(comment.replies || []), newReply],
-        };
-      }
-      if (comment.replies) {
-        comment.replies.map((reply) => {
-          if (reply.id === replyingCommentId)
-            return { ...reply, replies: [...(reply.replies || []), newReply] };
-          return reply;
-        });
-      }
-      return comment;
-    });
+
+    const updateReplies = (commentList: Comment[]): Comment[] => {
+      return commentList.map((comment) => {
+        if (comment.id === replyingCommentId) {
+          // Add the reply to the correct comment
+          return {
+            ...comment,
+            replies: [...(comment.replies || []), newReply],
+          };
+        }
+
+        if (comment.replies) {
+          // Recursively check and update nested replies
+          return {
+            ...comment,
+            replies: updateReplies(comment.replies),
+          };
+        }
+
+        return comment;
+      });
+    };
+
+    const updatedComments = updateReplies(comments);
     setComments(updatedComments);
-    localStorage.setItem("comments", JSON.stringify(updatedComments))
-    setReplyingCommentId(null)
+    localStorage.setItem("comments", JSON.stringify(updatedComments));
+    setReplyingCommentId(null);
   };
 
   const handleOnEdit = (id: number) => setEditingCommentId(id);

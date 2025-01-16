@@ -214,11 +214,11 @@ const CommentItem: React.FC<{
                   (votedComment) => votedComment.id === reply.id
                 )?.type
               }
-              onEdit={() => onEdit(reply.id)}
+              onEdit={onEdit} 
               isBeingEdited={reply.id === editingCommentId}
               votedComments={votedComments}
               replyingTo={reply.replyingTo}
-              onDelete={() => onDelete(reply.id)}
+              onDelete={onDelete}
               onUpVote={() => onUpVote(reply.id)}
               onDownVote={() => onDownVote(reply.id)}
               isBeingReplied={reply.id === replyingCommentId}
